@@ -1,0 +1,40 @@
+{
+  "name": "database-scripts-sandbox",
+  "version": "1.0.0",
+  "description": "A place to develop and test database scripts.",
+  "main": "index.js",
+  "dependencies": {
+    "bson": "^4.4.1",
+    "dotenv": "^10.0.0",
+    "mongodb": "^4.0.1",
+    "tunnel-ssh": "^4.1.4"
+  },
+  "devDependencies": {
+    "@fluffy-spoon/substitute": "^1.208.0",
+    "@types/chai": "^4.2.21",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.4.5",
+    "@types/tunnel-ssh": "^4.1.1",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "run-rs": "^0.7.5",
+    "ts-node": "^10.1.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.3.5"
+  },
+  "scripts": {
+    "runMigration": "ts-node -r dotenv/config ./src/runMigration.ts",
+    "exportJson": "ts-node -r dotenv/config ./src/exportJson.ts",
+    "dev": "ts-node-dev --respawn index.ts",
+    "test": "mocha --require ts-node/register tests/**/*.test.ts --timeout 50000",
+    "run-rs": "run-rs -v 4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/calmisland/database-scripts-sandbox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/calmisland/database-scripts-sandbox#readme"
+}
