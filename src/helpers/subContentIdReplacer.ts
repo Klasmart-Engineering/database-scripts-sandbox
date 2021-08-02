@@ -12,6 +12,8 @@ export class SubContentIdReplacer {
     return newJson;
   }
 
+  // Copied straight from the offical h5p-php-library.
+  // https://github.com/h5p/h5p-php-library/blob/4599291d7ce0cfb90edd188b181416f31514748e/js/h5p.js#L2288
   private static createUUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
       /[xy]/g,

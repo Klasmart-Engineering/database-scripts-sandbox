@@ -28,6 +28,8 @@ const client = new MongoClient(url, {
     username: process.env.MONGO_USERNAME,
     password: process.env.MONGO_PASSWORD,
   },
+  // I tried different combinations of these options, but this is the one
+  // that I had success with so far.
   tls: true,
   //sslValidate: true,
   //ssl: true,

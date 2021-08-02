@@ -33,7 +33,7 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
     it("subContentIds are replaced", async () => {
       // Arrange
       const originalJson = fs
-        .readFileSync("alpha-content-extended.json")
+        .readFileSync("alpha-content.json")
         .toString();
       const originalDocuments = EJSON.parse(originalJson, {
         relaxed: false,

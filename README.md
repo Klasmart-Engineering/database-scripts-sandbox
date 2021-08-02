@@ -1,29 +1,78 @@
-# README #
+# Database Scripts Sandbox
 
-This README would normally document whatever steps are necessary to get your application up and running.
+A place to develop and test database scripts.
 
-### What is this repository for? ###
+[TOC]
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+This script operates on _[Extended JSON](https://docs.mongodb.com/manual/reference/mongodb-extended-json/)_ in _Canonical Mode_ so it preserves type information.
 
-### How do I get set up? ###
+Script flow:
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+1. Fetch all documents from MongoDB.
+2. Convert the documents to _Extended JSON_ using `EJSON.stringify`.
+3. Use Regex to find all subContentIds.
+4. Detect the duplicates.
+5. Replace the duplicates (as a new JSON string).
+6. Convert the new JSON to documents using `EJSON.parse`.
+7. Delete all the old documents from MongoDB.
+8. Insert all the new documents into MongoDB.
 
-### Contribution guidelines ###
+## Local development
 
-* Writing tests
-* Code review
-* Other guidelines
+### Prerequisites
 
-### Who do I talk to? ###
+#### Installation
 
-* Repo owner or admin
-* Other community or team contact
+- Node v14.x.x
+- Npm v6.x.x
+- Docker (only necessary when running the integration tests and trying out the script with a local MongoDB)
+
+#### Configuration
+
+Copy/paste `.env.example` in the root directory, rename it to `.env`, and modify as necessary.
+
+Create MongoDB container
+
+```
+docker run --name h5p-mongo -p 27017:27017 -d mongo
+```
+
+### Running
+
+Ensure all dependencies are installed
+
+```
+npm install
+```
+
+Ensure MongoDB is running (not needed for the actual migration; only used when testing locally)
+
+```
+docker start h5p-mongo
+```
+
+Export all existing data to a file called `exportedData.json`.
+
+```
+npm run exportJson
+```
+
+Run migration
+
+```
+npm run runMigration
+```
+
+### Debugging
+
+1. Navigate to the VS Code sidebar debug panel
+2. Select `runMigration.ts` from the dropdown
+3. Click the green arrow debug button
+
+### Testing
+
+Run tests
+
+```
+npm test
+```
