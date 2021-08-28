@@ -1,7 +1,7 @@
 import { EJSON } from "bson";
 import { Collection, MongoClient, ObjectId } from "mongodb";
-import { DuplicateSubContentIdDetector } from "./helpers/duplicateSubContentIdDetector";
-import { SubContentIdReplacer } from "./helpers/subContentIdReplacer";
+import { DuplicateSubContentIdDetector } from "../helpers/duplicateSubContentIdDetector";
+import { SubContentIdReplacer } from "../helpers/subContentIdReplacer";
 
 export class DuplicateSubContentIdReplacer {
   constructor(

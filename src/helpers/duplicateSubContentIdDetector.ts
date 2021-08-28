@@ -1,9 +1,10 @@
 export class DuplicateSubContentIdDetector {
+  constructor(private readonly regex = new RegExp(/"subContentId"\s?:\s?"([0-9a-z-]+)"/, "g")) {}
+
   public getDuplicates(json: string): readonly string[] {
-    const regex = new RegExp(/"subContentId"\s?:\s?"([0-9a-z-]+)"/, "g");
     let regexResult: RegExpExecArray | null;
     const regexResults: RegExpExecArray[] = [];
-    while ((regexResult = regex.exec(json))) {
+    while ((regexResult = this.regex.exec(json))) {
       if (regexResult) regexResults.push(regexResult);
     }
     const subContentIdToCountMap = new Map<string, number>();

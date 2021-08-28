@@ -37,3 +37,25 @@ async function main() {
 })().catch((e) => {
   console.log(e);
 });
+
+
+// =============== BSON LOADING =============== //
+
+    // const docs = [{ foo: "bar" }, { foo: "baz" }, { foo: "quux" }];
+    // // Serialize the test data
+    // const serializedDocs = [];
+    // for (let i: number = 0; i < docs.length; i++) {
+    //   serializedDocs[i] = serialize(docs[i]);
+    // }
+    // const parsedDocs2: Document[] = [];
+    // const buf = Buffer.concat(serializedDocs);
+    // const nextIndex2 = deserializeStream(buf, 0, 4, parsedDocs2, 0, {});
+    //return;
+    
+    // const deserialized = deserialize(bson, {
+    //   allowObjectSmallerThanBufferSize: true,
+    // });
+    
+    //const json = JSON.stringify(parsedDocs);
+    //console.log("nextIndex", nextIndex);
+    //console.log(json);

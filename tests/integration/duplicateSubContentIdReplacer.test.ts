@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { Collection, MongoClient, ObjectId } from "mongodb";
-import { DuplicateSubContentIdDetector } from "../src/helpers/duplicateSubContentIdDetector";
-import { DuplicateSubContentIdReplacer } from "../src/duplicateSubContentIdReplacer";
-import { SubContentIdReplacer } from "../src/helpers/subContentIdReplacer";
+import { DuplicateSubContentIdDetector } from "../../src/helpers/duplicateSubContentIdDetector";
+import { DuplicateSubContentIdReplacer } from "../../src/dev/duplicateSubContentIdReplacer";
+import { SubContentIdReplacer } from "../../src/helpers/subContentIdReplacer";
 import { Arg, Substitute } from "@fluffy-spoon/substitute";
-import { EJSON } from "bson";
+import { deserializeStream, EJSON } from "bson";
 import fs from "fs";
 
-describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
+describe.skip("duplicateSubContentIdReplacer.replaceDuplicates", () => {
   const url = "mongodb://localhost:27017/h5p";
   const client = new MongoClient(url, {});
   let collection: Collection;
@@ -21,7 +21,7 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
     try {
       await collection.drop();
     } catch (e) {
-      console.log("collection.drop", e);
+      // Ignore error.
     }
   });
 
@@ -32,9 +32,7 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
   context("alpha database contents", () => {
     it("subContentIds are replaced", async () => {
       // Arrange
-      const originalJson = fs
-        .readFileSync("alpha-content.json")
-        .toString();
+      const originalJson = fs.readFileSync("alpha-content.json").toString();
       const originalDocuments = EJSON.parse(originalJson, {
         relaxed: false,
       }) as [];
@@ -51,6 +49,45 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
       const json = EJSON.stringify(documents, { relaxed: false });
       expect(json.length).to.equal(originalJson.length);
       expect(documents).to.not.equal(originalDocuments);
+      expect(documents[0]._id).to.be.instanceOf(ObjectId);
+
+      const duplicateSubContentIdDetector = new DuplicateSubContentIdDetector();
+      const duplicates = duplicateSubContentIdDetector.getDuplicates(json);
+      expect(duplicates).to.be.empty;
+    });
+  });
+
+  context("prod database contents", () => {
+    it("subContentIds are replaced", async () => {
+      // Arrange
+      const bson = fs.readFileSync("h5p.bson");
+      const originalDocuments: Document[] = [];
+      const nextIndex = deserializeStream(
+        bson,
+        0,
+        37526,
+        originalDocuments,
+        0,
+        {}
+      );
+      const originalJsonLength = EJSON.stringify(originalDocuments, {
+        relaxed: false,
+      }).length;
+      await collection.insertMany(originalDocuments);
+      const originalDocumentCount = originalDocuments.length;
+      originalDocuments.length = 0;
+
+      const sut = new DuplicateSubContentIdReplacer(client, collection);
+
+      // Act
+      const isDryRun = false;
+      await sut.replaceDuplicates(isDryRun);
+
+      // Assert
+      const documents = await collection.find({}).toArray();
+      const json = EJSON.stringify(documents, { relaxed: false });
+      expect(json.length).to.equal(originalJsonLength);
+      expect(documents.length).to.equal(originalDocumentCount);
       expect(documents[0]._id).to.be.instanceOf(ObjectId);
 
       const duplicateSubContentIdDetector = new DuplicateSubContentIdDetector();
@@ -88,7 +125,7 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
         _id: new ObjectId(),
         slide: { subContentId: "abc" },
       };
-      const originalDocumentJson = JSON.stringify(originalDocument);
+      const originalJson = JSON.stringify(originalDocument);
       await collection.insertOne(originalDocument);
       const subContentIdReplacer = Substitute.for<SubContentIdReplacer>();
 
@@ -106,9 +143,9 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
       // Assert
       subContentIdReplacer.didNotReceive().replaceWithNewIds(Arg.any());
       const documents = await collection.find({}).toArray();
-      const d1 = documents[0];
-      expect(JSON.stringify(d1)).to.deep.equal(originalDocumentJson);
-      expect(d1._id).to.be.instanceOf(ObjectId);
+      const document = documents[0];
+      expect(JSON.stringify(document)).to.deep.equal(originalJson);
+      expect(document._id).to.be.instanceOf(ObjectId);
     });
   });
 
@@ -143,13 +180,13 @@ describe("duplicateSubContentIdReplacer.replaceDuplicates", () => {
       // Assert
       subContentIdReplacer.didNotReceive().replaceWithNewIds(Arg.any());
       const documents = await collection.find({}).toArray();
-      const d1 = documents[0];
+      const document = documents[0];
       expect(
-        EJSON.stringify(d1, {
+        EJSON.stringify(document, {
           relaxed: false,
         })
       ).to.deep.equal(originalDocumentJson);
-      expect(d1._id).to.be.instanceOf(ObjectId);
+      expect(document._id).to.be.instanceOf(ObjectId);
     });
   });
 

@@ -1,28 +1,10 @@
 import { MongoClient } from "mongodb";
 import fs from "fs";
-import tunnel from "tunnel-ssh";
 import { EJSON } from "bson";
+import { connectToSshTunnel } from "../helpers/connectToSshTunnel";
 
-const sshTunnelConfig = {
-  username: process.env.SSH_USERNAME,
-  privateKey: fs.readFileSync(process.env.PRIVATE_KEY_PATH ?? ""),
-  passphrase: process.env.PASSPHRASE,
-  host: process.env.SSH_HOST,
-  port: 22,
-  dstHost: process.env.DST_HOST,
-  dstPort: 27017,
-  localPort: 27017,
-};
-var server = tunnel(sshTunnelConfig, function (error: any, server: any) {
-  if (error) {
-    console.error("SSH error", error);
-  }
-});
-server.on("error", function (err: any) {
-  console.error("SSH error", err);
-});
-
-const url = "mongodb://localhost:27017/h5p";
+const url = String(process.env.MONGO_URL);
+const useSshTunnel = process.env.USE_SSH_TUNNEL === "true"
 const client = new MongoClient(url, {
   auth: {
     username: process.env.MONGO_USERNAME,
@@ -30,7 +12,7 @@ const client = new MongoClient(url, {
   },
   // I tried different combinations of these options, but this is the one
   // that I had success with so far.
-  tls: true,
+  tls: useSshTunnel,
   //sslValidate: true,
   //ssl: true,
   //tlsCAFile: "src/rds-combined-ca-bundle.pem",
@@ -38,12 +20,15 @@ const client = new MongoClient(url, {
   //tlsAllowInvalidCertificates: true,
   //authMechanism: "SCRAM-SHA-1",
   //replicaSet: "rs0",
-  tlsInsecure: true,
-  directConnection: true,
+  tlsInsecure: useSshTunnel,
+  directConnection: useSshTunnel,
   //readPreference: ReadPreferenceMode.secondaryPreferred,
 });
 
 async function main() {
+  if (useSshTunnel) {
+    connectToSshTunnel()
+  }
   await client.connect();
   console.log("Connected successfully to server");
 
