@@ -74,7 +74,7 @@ async function main() {
       return
     }
 
-    const isDryRun = process.env.DRY_RUN === "true";
+    const isDryRun = process.env.DRY_RUN !== "false";
     if (isDryRun) {
       console.log('DRY_RUN is set to true. Exiting without writing changes...')
       return
