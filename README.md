@@ -14,8 +14,7 @@ Script flow:
 4. Detect the duplicates.
 5. Replace the duplicates (as a new JSON string).
 6. Convert the new JSON to documents using `EJSON.parse`.
-7. Delete all the old documents from MongoDB.
-8. Insert all the new documents into MongoDB.
+7. Replace all affected documents in MongoDB with the modified versions.
 
 ## Local development
 
@@ -60,13 +59,13 @@ npm run exportJson
 Run migration
 
 ```
-npm run runMigration
+npm run migration
 ```
 
 ### Debugging
 
 1. Navigate to the VS Code sidebar debug panel
-2. Select `runMigration.ts` from the dropdown
+2. Select `migration.ts` from the dropdown
 3. Click the green arrow debug button
 
 ### Testing
