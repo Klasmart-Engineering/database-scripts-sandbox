@@ -10,18 +10,19 @@ const client = new MongoClient(url, {
     username: process.env.MONGO_USERNAME,
     password: process.env.MONGO_PASSWORD,
   } : undefined,
-  // I tried different combinations of these options, but this is the one
-  // that I had success with so far.
-  tls: true,
-  //sslValidate: true,
-  //ssl: true,
-  //tlsCAFile: "src/rds-combined-ca-bundle.pem",
-  //tlsAllowInvalidHostnames: true,
+  // NOTE - avoid configuring the connection here - this should all be done in the connection url parameters
+  // DocumentDB settings
+  // ssl: true,
+  // tlsCAFile: "rds-combined-ca-bundle.pem",
+  // tlsAllowInvalidHostnames: true,
+  // tlsInsecure: true,
+  // directConnection: true,
+
+  // OTHER BOILERPLATE STUFF
+
   //tlsAllowInvalidCertificates: true,
   //authMechanism: "SCRAM-SHA-1",
   //replicaSet: "rs0",
-  tlsInsecure: true,
-  directConnection: true,
   //readPreference: ReadPreferenceMode.secondaryPreferred,
 });
 

@@ -1,9 +1,11 @@
 FROM node:latest
 
-COPY . /src
+COPY . /code
 
-RUN cd /src && npm i
+WORKDIR /code
 
-WORKDIR /src
-ENTRYPOINT /bin/bash
-CMD npm run migration
+RUN npm i
+RUN wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem
+
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["npm run migration"]
