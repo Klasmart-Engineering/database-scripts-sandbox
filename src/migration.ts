@@ -5,7 +5,6 @@ import { SubContentIdReplacer } from "./helpers/subContentIdReplacer";
 import { connectToSshTunnel } from "./helpers/connectToSshTunnel";
 
 const url = String(process.env.MONGO_URL);
-const useSshTunnel = process.env.USE_SSH_TUNNEL === "true"
 const client = new MongoClient(url, {
   auth: process.env.MONGO_USERNAME ? {
     username: process.env.MONGO_USERNAME,
@@ -13,7 +12,7 @@ const client = new MongoClient(url, {
   } : undefined,
   // I tried different combinations of these options, but this is the one
   // that I had success with so far.
-  tls: useSshTunnel,
+  tls: true,
   //sslValidate: true,
   //ssl: true,
   //tlsCAFile: "src/rds-combined-ca-bundle.pem",
@@ -21,13 +20,13 @@ const client = new MongoClient(url, {
   //tlsAllowInvalidCertificates: true,
   //authMechanism: "SCRAM-SHA-1",
   //replicaSet: "rs0",
-  tlsInsecure: useSshTunnel,
-  directConnection: useSshTunnel,
+  tlsInsecure: true,
+  directConnection: true,
   //readPreference: ReadPreferenceMode.secondaryPreferred,
 });
 
 async function main() {
-  if (useSshTunnel) {
+  if (process.env.USE_SSH_TUNNEL === "true") {
     connectToSshTunnel()
   }
   await client.connect();
