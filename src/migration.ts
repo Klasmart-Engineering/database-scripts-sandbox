@@ -84,7 +84,7 @@ async function main() {
     const updateOps = docReplacements.map(x => {
       return { replaceOne: { filter: { _id: x._id }, replacement: x } }
     })
-    const updateResult = await collection.bulkWrite(updateOps);
+    const updateResult = await collection.bulkWrite(updateOps, { retryWrites: false });
     console.log("Write result", updateResult);
   } finally {
     await client.close();
