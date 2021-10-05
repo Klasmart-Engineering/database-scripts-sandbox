@@ -1,0 +1,5 @@
+.nyc_output
+.husky
+.vscode
+node_modules
+test-results
