@@ -22,7 +22,6 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.34.0",
     "@aws-sdk/util-dynamodb": "^3.34.0",
-    "aws-sdk": "^2.997.0",
     "pg": "^8.7.1",
     "typedi": "^0.10.0",
     "typeorm": "^0.2.37",
