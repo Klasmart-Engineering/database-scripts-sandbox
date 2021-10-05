@@ -1,5 +1,4 @@
 export const checkIsUuid = (text: string): boolean => {
-  console.log('checkIsUuid ====>', text)
   const uuidv4Regex =
     /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
   const test = uuidv4Regex.test(text)

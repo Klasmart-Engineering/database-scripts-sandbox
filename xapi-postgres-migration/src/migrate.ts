@@ -1,12 +1,3 @@
-import util from 'util'
-import { exec as _exec } from 'child_process'
-const exec = util.promisify(_exec)
-import {
-  DocumentClient,
-  // ScanOutput,
-  // ScanInput,
-  Key,
-} from 'aws-sdk/clients/dynamodb'
 import {
   ScanCommand,
   ScanOutput,
@@ -14,7 +5,7 @@ import {
   DynamoDBClient,
 } from '@aws-sdk/client-dynamodb'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
-import { getConnection, InsertResult, Connection } from 'typeorm'
+import { InsertResult, Connection } from 'typeorm'
 import { Container as MutableContainer } from 'typedi'
 
 import { XApiRecord } from './interfaces'
@@ -147,26 +138,8 @@ export const executeMigration = async ({
   console.log(`Total scanned:         ${totalImported}`)
   console.log(`Total imported:        ${totalImported - totalInvalidUuid}`)
   console.log(`Total invalid user_id: ${totalInvalidUuid}`)
-
-  // getConnection().close()
   console.log('Done 🙌')
 }
-
-// export const dryRunMigration2 = async (): Promise<void> => {
-//   const { awsRegion, dynamodbTableName, xapiEventsDatabaseUrl } = getConfig()
-
-//   // check Dynamodb table
-//   const { stdout } = await exec(
-//     `aws dynamodb scan --region ${awsRegion} --table-name ${dynamodbTableName} --select "COUNT"`,
-//   )
-//   const tableRowCount = JSON.parse(stdout).Count
-//   console.log(
-//     `♦️  The DynamoDB table ${dynamodbTableName} has a total of ${tableRowCount} items`,
-//   )
-
-//   // check database connection
-//   await connectToXApiDatabase(xapiEventsDatabaseUrl)
-// }
 
 export const dryRunMigration = async (config: Config): Promise<void> => {
   const { dynamodbTableName } = config
@@ -178,6 +151,7 @@ export const dryRunMigration = async (config: Config): Promise<void> => {
       TableName: dynamodbTableName,
       ExclusiveStartKey: lastEvaluatedKey,
       Limit: Number(process.env.SCAN_LIMIT || 1000),
+      Select: 'COUNT',
     })
     const dynamoClient: DynamoDBClient = MutableContainer.get('dynamoClient')
     const result: ScanOutput = await dynamoClient.send(scanCmd)
@@ -188,8 +162,14 @@ export const dryRunMigration = async (config: Config): Promise<void> => {
     `♦️  The DynamoDB table ${dynamodbTableName} has a total of ${totalItemCount} items`,
   )
 
-  // // check database connection
-  // await connectToXApiDatabase(xapiPgDatabaseUrl)
+  // check database connection
+  const connection: Connection = MutableContainer.get('pgConnection')
+  const numXapiRecordsInPg = await connection
+    .getRepository(XApiRecordSql)
+    .count()
+  console.log(
+    `🐘 The target Postgres table container ${numXapiRecordsInPg} rows.`,
+  )
 
   console.log('Done 🙌')
 }
@@ -200,10 +180,12 @@ const main = async () => {
   await setup(config)
 
   if (argv.dryRun) {
-    console.log('🧪 Running in dry mode')
+    console.log('\n🧪 Running in dry mode')
+    console.log('----------------------')
     await dryRunMigration(config)
   } else {
-    console.log('🚀 Executing migration')
+    console.log('\n🚀 Executing migration')
+    console.log('----------------------')
     await executeMigration(config)
   }
 
@@ -216,14 +198,3 @@ if (require.main === module) {
     console.error(e)
   })
 }
-
-/**
- * Tests
- *
- * - make simple assertations with some integration tests
- * connect to dynamodb
- * - use localstack?
- *
- * - simple testing:
- *  - with dummy data with valid and invalid user_id
- */

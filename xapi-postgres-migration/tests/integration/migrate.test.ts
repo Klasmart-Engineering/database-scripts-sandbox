@@ -1,19 +1,13 @@
 import { expect } from 'chai'
 import {
-  DocumentClient,
-  BatchWriteItemInput,
-  PutItemInput,
-} from 'aws-sdk/clients/dynamodb'
-import {
   CreateTableCommand,
   DynamoDBClient,
   PutItemCommand,
-  BatchWriteItemCommand,
   ListTablesCommand,
   DeleteTableCommand,
 } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb'
-import { getConnection, Connection } from 'typeorm'
+import { Connection } from 'typeorm'
 import { Container as MutableContainer } from 'typedi'
 import { v4 } from 'uuid'
 import { connectToXApiDatabase } from '../../src/connectToDatabase'
@@ -21,17 +15,12 @@ import { executeMigration } from '../../src/migrate'
 import { XApiRecordSql } from '../../src/entities'
 import { Config } from '../../src/utils'
 
-const dynamoTableName = process.env.DYNAMODB_TABLE_NAME || 'xapi'
+const dynamoTableName = process.env.TEST_DYNAMODB_TABLE_NAME || 'xapi'
 const xapiPgTestDatabaseUrl = String(process.env.TEST_XAPI_DATABASE_URL)
-// const xapiPgTestDatabaseUrl = String(process.env.TEST_XAPI_DATABASE_URL)
-// const dynamoClient = new DynamoDBClient({
-//   region: process.env.AWS_REGION || 'ap-northeast-2',
-//   endpoint: 'http://localhost:4566',
-// })
 
 const setup = async () => {
   const dynamoClient = new DynamoDBClient({
-    endpoint: 'http://localhost:4566',
+    endpoint: process.env.TEST_AWS_ENDPOINT || 'http://localhost:4566',
     region: 'ap-northeast-2',
   })
   MutableContainer.set('dynamoClient', dynamoClient)
@@ -67,7 +56,6 @@ describe('', () => {
     const listOfTables =
       (await dynamoClient.send(new ListTablesCommand({}))).TableNames || []
 
-    console.log({ listOfTables })
     if (listOfTables.includes(dynamoTableName)) {
       console.log(`Dynamodb: Deleting the table ${dynamoTableName}`)
       const deleteTableCmd = new DeleteTableCommand({
