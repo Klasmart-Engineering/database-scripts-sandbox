@@ -33,7 +33,7 @@ export AWS_REGION=ap-northeast-2
 # Destination
 export XAPI_DATABASE_URL=postgres://user:password@127.0.0.1:5432/db_name
 
-# DynamoDB scan limit
+# DynamoDB scan limit (recommended)
 export SCAN_LIMIT=1000
 
 # SQL Batch Insert size
@@ -54,7 +54,7 @@ docker build -t sandbox .
 ```
 
 ```sh
-docker run -it sandbox ts-node src/migrate.ts [--dry-mode]
+docker run -it --network="host" sandbox npx ts-node src/migrate.ts [--dry-mode]
 ```
 
 
@@ -72,4 +72,9 @@ Run a local simulated AWS environment with `localstack`:
 docker run -d --rm -it -p 4566:4566 -p 4571:4571 -e "SERVICES=dynamodb" localstack/localstack start
 ```
 
-Localstack's endpoint will be available at `http://localhost:4566`. Specify a `AWS_ENDPOINT` in your `.env` to make use of it.
+Localstack's endpoint will be available at `http://localhost:4566`. Specify a `TEST_AWS_ENDPOINT` in your `.env` to make use of it.
+
+Run tests
+```sh
+$ npm run test
+```
