@@ -1,0 +1,50 @@
+{
+  "name": "xapi-postgres-migration",
+  "version": "1.0.0",
+  "description": "A script to migrate XApi data from DynamoDB to Postgres",
+  "main": "migrate.ts",
+  "scripts": {
+    "migration": "ts-node src/migrate.ts",
+    "dry-run": "ts-node src/migrate.ts --dry-run",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "mocha --require ts-node/register tests/unit/*.test.ts --timeout 0",
+    "test:integration": "mocha --require ts-node/register tests/integration/*.test.ts --timeout 0"
+  },
+  "keywords": [
+    "xapi",
+    "migration",
+    "dynamodb",
+    "postgres",
+    "h5p"
+  ],
+  "author": "Evgeny Roskach",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.34.0",
+    "@aws-sdk/util-dynamodb": "^3.34.0",
+    "aws-sdk": "^2.997.0",
+    "pg": "^8.7.1",
+    "typedi": "^0.10.0",
+    "typeorm": "^0.2.37",
+    "yargs": "^17.2.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.10.2",
+    "@types/uuid": "^8.3.1",
+    "@types/yargs": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "mocha": "^9.1.2",
+    "prettier": "^2.4.1",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3",
+    "uuid": "^8.3.2"
+  }
+}
