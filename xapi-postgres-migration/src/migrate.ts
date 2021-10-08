@@ -1,10 +1,9 @@
 import {
   ScanCommand,
   ScanOutput,
-  AttributeValue,
   DynamoDBClient,
 } from '@aws-sdk/client-dynamodb'
-import { unmarshall } from '@aws-sdk/util-dynamodb'
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb'
 import { InsertResult, Connection } from 'typeorm'
 import { Container as MutableContainer } from 'typedi'
 
@@ -15,14 +14,13 @@ import { parser } from './argv'
 import { checkIsUuid, getProdConfig, Config } from './utils'
 
 interface DynamoTableKey {
-  [key: string]: AttributeValue
+  userId: string
+  serverTimestamp: number
 }
 
 interface ScanResult {
   items?: XApiRecordSql[]
-  lastEvaluatedKey?: {
-    [key: string]: AttributeValue
-  }
+  lastEvaluatedKey?: DynamoTableKey
 }
 
 const setup = async (config: Config) => {
@@ -46,7 +44,7 @@ export const readFromDynamoDb = async (
 ): Promise<ScanResult> => {
   const scanCmd = new ScanCommand({
     TableName: tableName,
-    ExclusiveStartKey: startKey || undefined,
+    ExclusiveStartKey: startKey ? marshall(startKey) : undefined,
     Limit: Number(process.env.SCAN_LIMIT || 1000),
     ProjectionExpression: 'userId,serverTimestamp,xapi,ipHash',
   })
@@ -57,7 +55,9 @@ export const readFromDynamoDb = async (
     items: output.Items
       ? output.Items.map((x) => unmarshall(x) as XApiRecordSql)
       : undefined,
-    lastEvaluatedKey: output.LastEvaluatedKey,
+    lastEvaluatedKey: output.LastEvaluatedKey
+      ? (unmarshall(output.LastEvaluatedKey) as DynamoTableKey)
+      : undefined,
   }
   return result
 }
@@ -89,6 +89,7 @@ export const executeMigration = async ({
   let totalInvalidUuid = 0
   do {
     i += 1
+    console.log('\nlastEvaluatedKey:', lastEvaluatedKey)
 
     const result: ScanResult = await readFromDynamoDb(
       dynamodbTableName,
@@ -106,14 +107,10 @@ export const executeMigration = async ({
     let invalidUuid = 0
 
     process.stdout.write('Inserting into Postgres')
-    for (let i = 0; i < items.length; i += chunkSize) {
-      const itemsChunk = items.slice(i, i + chunkSize).filter((item) => {
+    for (let j = 0; j < items.length; j += chunkSize) {
+      const itemsChunk = items.slice(j, j + chunkSize).filter((item) => {
         const isUuid =
           item.userId && checkIsUuid(item.userId as unknown as string)
-        console.log({
-          userId: item.userId,
-          isUuid: checkIsUuid(item.userId as unknown as string),
-        })
         if (!isUuid) {
           invalidUuid += 1
         }
@@ -124,7 +121,7 @@ export const executeMigration = async ({
       process.stdout.clearLine(1)
       process.stdout.cursorTo(0)
       process.stdout.write(
-        `${i}. Inserting into Postgres: ${i + itemsChunk.length}/${
+        `${i}. Inserting into Postgres: ${j + itemsChunk.length}/${
           items.length
         }`,
       )
@@ -132,10 +129,10 @@ export const executeMigration = async ({
     totalImported += items.length
     process.stdout.write(`. Found ${invalidUuid} records with invalid user_id`)
     totalInvalidUuid += invalidUuid
-    process.stdout.write('\n\n')
+    process.stdout.write('\n')
   } while (lastEvaluatedKey)
 
-  console.log(`Total scanned:         ${totalImported}`)
+  console.log(`\nTotal scanned:         ${totalImported}`)
   console.log(`Total imported:        ${totalImported - totalInvalidUuid}`)
   console.log(`Total invalid user_id: ${totalInvalidUuid}`)
   console.log('Done 🙌')
@@ -168,7 +165,7 @@ export const dryRunMigration = async (config: Config): Promise<void> => {
     .getRepository(XApiRecordSql)
     .count()
   console.log(
-    `🐘 The target Postgres table container ${numXapiRecordsInPg} rows.`,
+    `🐘 The target Postgres table contains ${numXapiRecordsInPg} rows.`,
   )
 
   console.log('Done 🙌')
