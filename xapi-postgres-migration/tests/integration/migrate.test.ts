@@ -108,6 +108,7 @@ describe('', () => {
       awsRegion: 'ap-northeast-2',
       dynamodbTableName: dynamoTableName,
       xapiPgDatabaseUrl: xapiPgTestDatabaseUrl,
+      overwrite: false,
     }
     await executeMigration(config)
 

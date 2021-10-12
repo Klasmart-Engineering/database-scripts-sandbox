@@ -63,20 +63,29 @@ export const readFromDynamoDb = async (
 
 export const bulkImport = async (
   items: XApiRecord[],
+  overwrite: boolean,
 ): Promise<InsertResult> => {
   const connection: Connection = MutableContainer.get('pgConnection')
-  const result = connection
+  const query = connection
     .createQueryBuilder()
     .insert()
     .into(XApiRecord)
     .values(items)
-    .orIgnore()
-    .execute()
+
+  const result = overwrite
+    ? query
+        .orUpdate({
+          conflict_target: ['user_id', 'server_timestamp'],
+          overwrite: ['xapi', 'ip_hash', 'geo'],
+        })
+        .execute()
+    : query.orIgnore().execute()
   return result
 }
 
 export const executeMigration = async ({
   dynamodbTableName,
+  overwrite,
 }: Config): Promise<void> => {
   let lastEvaluatedKey: DynamoTableKey | undefined = undefined
   // let lastEvaluatedKey: any = {
@@ -116,7 +125,7 @@ export const executeMigration = async ({
         return isUuid
       })
 
-      await bulkImport(itemsChunk)
+      await bulkImport(itemsChunk, overwrite)
       process.stdout.clearLine(1)
       process.stdout.cursorTo(0)
       process.stdout.write(
@@ -170,7 +179,7 @@ export const dryRunMigration = async (config: Config): Promise<void> => {
 
 const main = async () => {
   const argv = await parser.argv
-  const config = getProdConfig()
+  const config = getProdConfig(argv)
   await setup(config)
 
   if (argv.dryRun) {

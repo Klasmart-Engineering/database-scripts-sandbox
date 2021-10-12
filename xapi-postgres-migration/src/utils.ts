@@ -1,3 +1,5 @@
+import { Argv } from './argv'
+
 export const checkIsUuid = (text: string): boolean => {
   const uuidv4Regex =
     /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
@@ -9,9 +11,10 @@ export interface Config {
   awsRegion: string
   dynamodbTableName: string
   xapiPgDatabaseUrl: string
+  overwrite: boolean
 }
 
-export const getProdConfig = (): Config => {
+export const getProdConfig = (argv: Argv): Config => {
   const awsRegion = process.env.AWS_REGION
   const dynamodbTableName = process.env.DYNAMODB_TABLE_NAME
   const xapiEventsDatabaseUrl = process.env.XAPI_DATABASE_URL
@@ -32,5 +35,6 @@ export const getProdConfig = (): Config => {
     awsRegion,
     dynamodbTableName,
     xapiPgDatabaseUrl: xapiEventsDatabaseUrl,
+    overwrite: argv.overwrite || false,
   }
 }
