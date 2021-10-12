@@ -7,8 +7,7 @@ import { marshall, unmarshall } from '@aws-sdk/util-dynamodb'
 import { InsertResult, Connection } from 'typeorm'
 import { Container as MutableContainer } from 'typedi'
 
-import { XApiRecord } from './interfaces'
-import { XApiRecordSql } from './entities'
+import { XApiRecord } from './entities'
 import { connectToXApiDatabase } from './connectToDatabase'
 import { parser } from './argv'
 import { checkIsUuid, getProdConfig, Config } from './utils'
@@ -19,7 +18,7 @@ interface DynamoTableKey {
 }
 
 interface ScanResult {
-  items?: XApiRecordSql[]
+  items?: XApiRecord[]
   lastEvaluatedKey?: DynamoTableKey
 }
 
@@ -46,14 +45,14 @@ export const readFromDynamoDb = async (
     TableName: tableName,
     ExclusiveStartKey: startKey ? marshall(startKey) : undefined,
     Limit: Number(process.env.SCAN_LIMIT || 1000),
-    ProjectionExpression: 'userId,serverTimestamp,xapi,ipHash',
+    ProjectionExpression: 'userId,serverTimestamp,xapi,ipHash,geo',
   })
   const dynamoClient: DynamoDBClient = MutableContainer.get('dynamoClient')
   const output: ScanOutput = await dynamoClient.send(scanCmd)
 
   const result = {
     items: output.Items
-      ? output.Items.map((x) => unmarshall(x) as XApiRecordSql)
+      ? output.Items.map((x) => unmarshall(x) as XApiRecord)
       : undefined,
     lastEvaluatedKey: output.LastEvaluatedKey
       ? (unmarshall(output.LastEvaluatedKey) as DynamoTableKey)
@@ -69,7 +68,7 @@ export const bulkImport = async (
   const result = connection
     .createQueryBuilder()
     .insert()
-    .into(XApiRecordSql)
+    .into(XApiRecord)
     .values(items)
     .orIgnore()
     .execute()
@@ -161,9 +160,7 @@ export const dryRunMigration = async (config: Config): Promise<void> => {
 
   // check database connection
   const connection: Connection = MutableContainer.get('pgConnection')
-  const numXapiRecordsInPg = await connection
-    .getRepository(XApiRecordSql)
-    .count()
+  const numXapiRecordsInPg = await connection.getRepository(XApiRecord).count()
   console.log(
     `🐘 The target Postgres table contains ${numXapiRecordsInPg} rows.`,
   )

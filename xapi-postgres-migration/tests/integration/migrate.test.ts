@@ -12,7 +12,7 @@ import { Container as MutableContainer } from 'typedi'
 import { v4 } from 'uuid'
 import { connectToXApiDatabase } from '../../src/connectToDatabase'
 import { executeMigration } from '../../src/migrate'
-import { XApiRecordSql } from '../../src/entities'
+import { XApiRecord } from '../../src/entities'
 import { Config } from '../../src/utils'
 
 const dynamoTableName = process.env.TEST_DYNAMODB_TABLE_NAME || 'xapi'
@@ -36,13 +36,17 @@ const teardown = async () => {
 
 describe('', () => {
   const xapiData = {
-    data: 'xapi',
+    clientTimestamp: Math.trunc(Math.random() * 100000000000),
+    data: {},
   }
-  const xapiRecord = {
+  const xapiRecord: XApiRecord = {
     userId: v4(),
     serverTimestamp: Math.trunc(Math.random() * 100000000000),
-    xapi: JSON.stringify(xapiData),
+    xapi: xapiData,
     ipHash: '127.0.0.1',
+    geo: {
+      country: 'Korea',
+    },
   }
   let dynamoClient: DynamoDBClient
   let pgConnection: Connection
@@ -91,7 +95,7 @@ describe('', () => {
 
     // Prepare the Postgres table by letting TypORM create it (or truncate an existing table)
     const pgTableName =
-      pgConnection.getRepository(XApiRecordSql).metadata.tableName
+      pgConnection.getRepository(XApiRecord).metadata.tableName
     await pgConnection.query(`TRUNCATE TABLE ${pgTableName}`)
   })
 
@@ -99,7 +103,7 @@ describe('', () => {
     await teardown()
   })
 
-  it('Runs the migration script', async () => {
+  it('Runs the migration script: data is deeply equal', async () => {
     const config: Config = {
       awsRegion: 'ap-northeast-2',
       dynamodbTableName: dynamoTableName,
@@ -107,7 +111,7 @@ describe('', () => {
     }
     await executeMigration(config)
 
-    const rows = await pgConnection.getRepository(XApiRecordSql).find()
+    const rows = await pgConnection.getRepository(XApiRecord).find()
     expect(rows.length).to.equal(1)
     expect(rows[0]).to.deep.equal(xapiRecord)
   })
