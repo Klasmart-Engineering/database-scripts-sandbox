@@ -1,8 +1,8 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm'
-import { XApiObject } from '../interfaces'
+import { XApiObject, IGeolocationInfo } from '../interfaces'
 
 @Entity({ name: 'xapi_record' })
-export class XApiRecordSql {
+export class XApiRecord {
   @PrimaryColumn({ name: 'user_id', type: 'uuid' })
   public userId!: string
 
@@ -22,16 +22,21 @@ export class XApiRecordSql {
   @Column({ name: 'ip_hash' })
   ipHash!: string
 
+  @Column({ nullable: true, type: 'json' })
+  geo?: IGeolocationInfo | null
+
   private constructor(
     userId: string,
     serverTimestamp: number,
     xapi?: XApiObject,
     ipHash?: string,
+    geo?: IGeolocationInfo,
   ) {
     this.userId = userId
     this.serverTimestamp = serverTimestamp
     this.xapi = xapi
     this.ipHash = ipHash || ''
+    this.geo = geo
   }
 
   public static new(
@@ -39,12 +44,14 @@ export class XApiRecordSql {
     serverTimestamp: number,
     xapi?: XApiObject,
     ipHash?: string,
-  ): XApiRecordSql {
-    const xapiRecordObject = new XApiRecordSql(
+    geo?: IGeolocationInfo,
+  ): XApiRecord {
+    const xapiRecordObject = new XApiRecord(
       userId,
       serverTimestamp,
       xapi,
       ipHash,
+      geo,
     )
     return xapiRecordObject
   }

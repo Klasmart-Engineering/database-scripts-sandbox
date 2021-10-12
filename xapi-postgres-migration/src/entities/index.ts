@@ -1,1 +1,1 @@
-export { XApiRecordSql } from './xapiRecordSql'
+export { XApiRecord } from './xapiRecordSql'
