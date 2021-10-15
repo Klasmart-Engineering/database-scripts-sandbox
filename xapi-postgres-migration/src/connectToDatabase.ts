@@ -7,7 +7,7 @@ export function getXApiDatabaseConnectionOptions(
   return {
     type: 'postgres',
     url,
-    synchronize: true,
+    synchronize: false,
     entities: [
       path.join(__dirname, './entities/*.ts'),
       path.join(__dirname, './entities/*.js'),
