@@ -24,7 +24,7 @@
     "@aws-sdk/util-dynamodb": "^3.34.0",
     "pg": "^8.7.1",
     "typedi": "^0.10.0",
-    "typeorm": "^0.2.37",
+    "typeorm": "^0.3.14",
     "yargs": "^17.2.1"
   },
   "devDependencies": {
